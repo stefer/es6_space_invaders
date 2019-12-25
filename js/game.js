@@ -17,8 +17,10 @@ class Game {
         }
 
         this.attackers = [];
-        for (var x = 100; x < this.width - 100; x += 30) {
-            this.attackers.push(new Attacker(new Vector(x, 25)));
+        for (var y = 30; y <= 120; y+= 30) {
+            for (var x = 100; x < this.width - 100; x += 30) {
+                this.attackers.push(new Attacker(new Vector(x, y)));
+            }
         }
 
         this.missiles = [];
@@ -78,7 +80,7 @@ class Game {
 
         for (const a of this.attackers) {
             a.checkbounds(this.bounds);
-            if (Math.random() > 0.995) {
+            if (Math.random() > 0.999) {
                 this.missiles.push(a.fire());
             }
         }
@@ -245,6 +247,10 @@ class Attacker extends Actor {
         }
 
         return true;
+    }
+
+    hitBy(actor) {
+        return !(actor instanceof Bomb) && super.hitBy(actor);
     }
 
     drawtranslated(ctx) {
