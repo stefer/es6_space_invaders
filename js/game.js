@@ -23,8 +23,8 @@ class Game {
             }
         }
 
-        this.missiles = [];
-        this.actors = [this.defender, ...this.fortresses, ...this.attackers, ...this.missiles];
+        this.projectiles = [];
+        this.actors = [this.defender, ...this.fortresses, ...this.attackers, ...this.projectiles];
     }
 
     onkeydown(e) {
@@ -50,7 +50,7 @@ class Game {
                 break;
 
             case 'Space':
-                this.missiles.push(this.defender.fire());
+                this.projectiles.push(this.defender.fire());
                 break;
     
             default:
@@ -60,58 +60,58 @@ class Game {
 
     deleteActor(actor)
     {
-        if (actor instanceof Fortress)
+        var coll = this.getActorCollection(actor);
+
+        if (!coll) return;
+
+        coll.splice(coll.indexOf(actor), 1);
+    }
+
+    getActorCollection(actor) {
+        switch(true)
         {
-            this.fortresses.splice(this.fortresses.indexOf(actor), 1);
+            case actor instanceof Fortress:
+                return this.fortresses;
+
+            case actor instanceof Attacker:
+                return this.attackers;
+
+            case actor instanceof Missile:
+            case actor instanceof Bomb:
+                return this.projectiles;
         }
 
-        if (actor instanceof Attacker)
-        {
-            this.attackers.splice(this.attackers.indexOf(actor), 1);
-        }
+        return null;
     }
 
     update(timestamp) {
-        for (const actor of this.actors) {
-            actor.update(ctx, timestamp);
-        }
+        this.actors.forEach(a => a.update(ctx, timestamp));
 
         this.defender.checkbounds(this.bounds);
 
-        for (const a of this.attackers) {
+        this.attackers.forEach(a => {
             a.checkbounds(this.bounds);
-            if (Math.random() > 0.999) {
-                this.missiles.push(a.fire());
-            }
             a.setspeed(a.speed.add(new Vector(0, 0.00001)));
-        }
+        });
 
-        for(var i = this.missiles.length-1; i >= 0; i--) {
-            var m = this.missiles[i];
-            var remove = !m.checkbounds(this.bounds);
+        this.projectiles.push(...this.attackers.filter(a => Math.random() > 0.999).map(a => a.fire()));
 
-            for (let j = 0; j < this.actors.length; j++) {
-                const actor = this.actors[j];
-                if (actor !== m && actor.hitBy(m)) {
-                    remove = true;
+        this.projectiles.filter(m => !m.checkbounds(this.bounds)).forEach(m => this.deleteActor(m));
+
+        for(const m of this.projectiles) {
+            for (const actor of this.actors) {
+                if (actor.hitBy(m)) {
+                    m.health--;
                     if (m instanceof Missile) {
                         this.score++;
                     }
                 } 
             }
-
-            if (remove) { 
-                this.missiles.splice(i, 1);
-            }
         }
 
-        for (const a of this.actors) {
-            if (a.isDead()) {
-                this.deleteActor(a);
-            }
-        }
+        this.actors.filter(a => a.isDead()).forEach(a => this.deleteActor(a));
 
-        this.actors = [this.defender, ...this.fortresses, ...this.attackers, ...this.missiles];
+        this.actors = [this.defender, ...this.fortresses, ...this.attackers, ...this.projectiles];
     }
 
     redraw(timestamp) {
@@ -122,9 +122,7 @@ class Game {
         ctx.fillText(`Score: ${this.score}`, 10, 20)
         ctx.fillText(`Health: ${this.defender.health}`, 70, 20)
 
-        for (const actor of this.actors) {
-            actor.draw(ctx, timestamp);            
-        }
+        for (const actor of this.actors) actor.draw(ctx, timestamp);
     }
 
     gameOver() {

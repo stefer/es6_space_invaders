@@ -27,7 +27,7 @@ class Actor {
     }
 
     hitBy(actor) {
-        if (this.bounds.overlaps(actor.bounds))
+        if (actor !== this && this.bounds.overlaps(actor.bounds))
         {
             var translation = actor.origin.subtract(this.origin);
             this.hits.push(Rect.fromcenter(translation, actor.bounds.width*1.5, actor.bounds.height*1.5));
@@ -136,6 +136,7 @@ class Missile extends Actor {
     constructor(origin, speed) {
         super(origin, 2, 5);
         this.setspeed(speed);
+        this.health = 1;
     }
 
     drawtranslated(ctx) {
@@ -150,6 +151,7 @@ class Bomb extends Actor {
     constructor(origin, speed) {
         super(origin, 2, 5);
         this.setspeed(speed);
+        this.health = 1;
     }
 
     drawtranslated(ctx) {
