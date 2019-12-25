@@ -7,6 +7,7 @@ class Game {
         this.width = ctx.canvas.width;
         this.height = ctx.canvas.height;
         this.bounds = new Rect(0, 0, this.width, this.height);
+        this.score = 0;
 
         this.defender = new Defender(new Vector(this.width/2, this.height-10));
         
@@ -90,6 +91,9 @@ class Game {
                 const actor = this.actors[j];
                 if (actor !== m && actor.hitBy(m)) {
                     remove = true;
+                    if (m instanceof Missile) {
+                        this.score++;
+                    }
                 } 
             }
 
@@ -106,11 +110,16 @@ class Game {
 
         this.actors = [this.defender, ...this.fortresses, ...this.attackers, ...this.missiles];
 
-        return !this.defender.isDead();
+        return !this.defender.isDead() && this.attackers.length > 0;
     }
 
     redraw(timestamp) {
         this.ctx.clearRect(0, 0, this.width, this.height); // clear canvas
+
+        ctx.fillStyle = 'blue';
+        ctx.font = '12px georgia';
+        ctx.fillText(`Score: ${this.score}`, 10, 20)
+        ctx.fillText(`Health: ${this.defender.health}`, 70, 20)
 
         for (const actor of this.actors) {
             actor.draw(ctx, timestamp);            
@@ -118,9 +127,16 @@ class Game {
     }
 
     gameOver() {
-        ctx.fillStyle = 'red';
-        ctx.font = '48px georgia';
-        ctx.fillText("Game Over!", this.width/4, this.height/2)
+        if (this.defender.isDead()) {
+            ctx.fillStyle = 'red';
+            ctx.font = '48px georgia';
+            ctx.fillText("Game Over!", this.width/4, this.height/2)
+        }
+        else {
+            ctx.fillStyle = 'darkgrey';
+            ctx.font = '48px georgia';
+            ctx.fillText("Success!", this.width/4, this.height/2)
+        }
     }
 }
 
@@ -162,9 +178,10 @@ class Actor {
     }
 
     drawtranslated(ctx) {   
-        ctx.strokeStyle = "#00ff00";
-        const localBounds = this.bounds.local();
-        ctx.strokeRect(localBounds.x, localBounds.y, localBounds.width, localBounds.height);
+
+        // ctx.strokeStyle = "#00ff00";
+        // const localBounds = this.bounds.local();
+        // ctx.strokeRect(localBounds.x, localBounds.y, localBounds.width, localBounds.height);
 
         for (const hit of this.hits) {
             ctx.clearRect(hit.x, hit.y, hit.width, hit.height);
@@ -279,7 +296,7 @@ class Fortress extends Actor
 {
     constructor(origin) {
         super(origin, 20, 10);
-        this.health = 20;
+        this.health = 10;
     }
 
     drawtranslated(ctx) {
