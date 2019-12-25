@@ -9,9 +9,10 @@ class Game {
         this.bounds = new Rect(0, 0, this.width, this.height);
 
         this.defender = new Defender(new Vector(this.width/2, this.height-10));
-        this.fortresses = [
-            new Fortress(new Vector(this.width/2, this.height-25))
-        ];
+        this.fortresses = [];
+        for (var x = 20; x < this.width - 20; x += 60) {
+            this.fortresses.push(new Fortress(new Vector(x, this.height-25)));
+        }
         this.missiles = [];
         this.actors = [this.defender, ...this.fortresses, ...this.missiles];
     }
