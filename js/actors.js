@@ -100,7 +100,7 @@ class Attacker extends Actor {
     }
 
     checkBounds(rect) {
-        if (Math.abs(this.originalPos.x - this.origin.x) > 40) {
+        if (Math.abs(this.originalPos.x - this.origin.x) > 100) {
             this.setSpeed(new Vector(-this.speed.x, this.speed.y));
         }
 

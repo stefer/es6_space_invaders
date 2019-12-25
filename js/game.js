@@ -12,13 +12,13 @@ class Game {
         this.defender = new Defender(new Vector(this.width/2, this.height-10));
         
         this.fortresses = [];
-        for (var x = 20; x < this.width - 20; x += 60) {
+        for (var x = 80; x < this.width - 80; x += 60) {
             this.fortresses.push(new Fortress(new Vector(x, this.height-25)));
         }
 
         this.attackers = [];
         for (var y = 30; y <= 120; y+= 30) {
-            for (var x = 100; x < this.width - 100; x += 30) {
+            for (var x = 200; x < this.width - 200; x += 30) {
                 this.attackers.push(new Attacker(new Vector(x, y)));
             }
         }
