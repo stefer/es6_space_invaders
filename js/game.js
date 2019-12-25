@@ -47,14 +47,36 @@ class Game {
         }
     }
 
+    deleteActor(actor)
+    {
+        if (actor instanceof Fortress)
+        {
+            this.fortresses.splice(this.fortresses.indexOf(actor), 1);
+        }
+    }
+
     update(timestamp) {
-        this.defender.update(timestamp);
+        for (const actor of this.actors) {
+            actor.update(ctx, timestamp);
+        }
+
         this.defender.checkbounds(this.bounds);
 
         for(var i = this.missiles.length-1; i >= 0; i--) {
             var m = this.missiles[i];
-            m.update(timestamp);
-            if (!m.checkbounds(this.bounds)) {
+            var remove = !m.checkbounds(this.bounds);
+
+            for (let j = 0; j < this.actors.length; j++) {
+                const actor = this.actors[j];
+                if (actor !== m && actor.hitBy(m)) {
+                    remove = true;
+                    if (actor.isDead()) {
+                        this.deleteActor(actor);
+                    }
+                } 
+            }
+
+            if (remove) { 
                 this.missiles.splice(i, 1);
             }
         }
@@ -75,6 +97,8 @@ class Actor {
         this.origin = origin;
         this.speed = new Vector(0,0);
         this.bounds = Rect.fromcenter(this.origin, width, height);
+        this.health = 5;
+        this.hits = [];
     }
 
     setspeed(v) {
@@ -90,11 +114,29 @@ class Actor {
         return rect.pointinside(this.origin)
     }
 
-    drawtranslated(ctx) {
-        ctx.beginPath();
-        ctx.arc(0, 0, 2, 0, 2 * Math.PI);
-        ctx.stroke();
-        ctx.closePath();
+    isDead() {
+        return this.health <= 0;
+    }
+
+    hitBy(actor) {
+        if (this.bounds.overlaps(actor.bounds))
+        {
+            var translation = actor.origin.subtract(this.origin);
+            this.hits.push(Rect.fromcenter(translation, actor.bounds.width, actor.bounds.height));
+            this.health--
+            return true;
+        }
+        return false;
+    }
+
+    drawtranslated(ctx) {   
+        ctx.strokeStyle = "#00ff00";
+        const localBounds = this.bounds.local();
+        ctx.strokeRect(localBounds.x, localBounds.y, localBounds.width, localBounds.height);
+
+        for (const hit of this.hits) {
+            ctx.clearRect(hit.x, hit.y, hit.width, hit.height);
+        }
     }
 
     draw(ctx, timestamp) {
@@ -128,9 +170,9 @@ class Defender extends Actor {
 
     drawtranslated(ctx) {
         ctx.fillStyle = "#aa88aa";
-        ctx.fillRect(-this.bounds.width/2, 0, this.bounds.width, -this.bounds.height/3);
-        ctx.fillRect(-this.bounds.width/4, 0, this.bounds.width/2, -this.bounds.height*2/3);
-        ctx.fillRect(-this.bounds.width/8, 0, this.bounds.width/4, -this.bounds.height);
+        ctx.fillRect(-this.bounds.width/2, this.bounds.height/2, this.bounds.width, -this.bounds.height/3);
+        ctx.fillRect(-this.bounds.width/4, this.bounds.height/2, this.bounds.width/2, -this.bounds.height*2/3);
+        ctx.fillRect(-this.bounds.width/8, this.bounds.height/2, this.bounds.width/4, -this.bounds.height);
 
         super.drawtranslated(ctx);
     }
@@ -145,6 +187,8 @@ class Missile extends Actor {
     drawtranslated(ctx) {
         ctx.fillStyle = "#FF0000";
         ctx.fillRect(-this.bounds.width/2, -this.bounds.height/2, this.bounds.width, this.bounds.height);
+
+        super.drawtranslated(ctx);
     }
 }
 
@@ -159,13 +203,15 @@ class Fortress extends Actor
         var height = this.bounds.height;
         ctx.fillStyle = "#000000";
         ctx.beginPath();
-        ctx.moveTo(-width/2, 0);
-        ctx.lineTo(-width/2, -height/2);
-        ctx.lineTo(0, -height);
-        ctx.lineTo(width/2, -height/2);
+        ctx.moveTo(-width/2, height/2);
+        ctx.lineTo(-width/2, 0);
+        ctx.lineTo(0, -height/2);
         ctx.lineTo(width/2, 0);
+        ctx.lineTo(width/2, height/2);
         ctx.closePath();
         ctx.fill();
+
+        super.drawtranslated(ctx);
     }
 }
 
@@ -177,6 +223,10 @@ class Vector {
 
     add(d) {
         return new Vector(this.x + d.x, this.y + d.y)
+    }
+
+    subtract(d) {
+        return new Vector(this.x - d.x, this.y - d.y)
     }
 }
 
@@ -200,6 +250,10 @@ class Rect {
         return new Rect(this.x+v.x, this.y+v.y, this.width, this.height);
     }
 
+    local() {
+        return new Rect(-this.width/2, -this.height/2, this.width, this.height)
+    }
+
     pointinside(v)
     {
         return (v.x >= this.x && v.x <= this.x+this.width)
@@ -216,11 +270,11 @@ class Rect {
     }
 
     rectinside(r) {
-        return r.corners().all(rv => this.pointinside(rv));
+        return r.corners().every(rv => this.pointinside(rv));
     }
 
     overlaps(r) {
-        return r.corners().any(rv => this.pointinside(rv));
+        return r.corners().some(rv => this.pointinside(rv));
     }
 
     toinside(v)
