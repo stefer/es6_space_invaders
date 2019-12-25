@@ -9,12 +9,19 @@ class Game {
         this.bounds = new Rect(0, 0, this.width, this.height);
 
         this.defender = new Defender(new Vector(this.width/2, this.height-10));
+        
         this.fortresses = [];
         for (var x = 20; x < this.width - 20; x += 60) {
             this.fortresses.push(new Fortress(new Vector(x, this.height-25)));
         }
+
+        this.attackers = [];
+        for (var x = 100; x < this.width - 100; x += 30) {
+            this.attackers.push(new Attacker(new Vector(x, 25)));
+        }
+
         this.missiles = [];
-        this.actors = [this.defender, ...this.fortresses, ...this.missiles];
+        this.actors = [this.defender, ...this.fortresses, ...this.attackers, ...this.missiles];
     }
 
     onkeydown(e) {
@@ -54,6 +61,11 @@ class Game {
         {
             this.fortresses.splice(this.fortresses.indexOf(actor), 1);
         }
+
+        if (actor instanceof Attacker)
+        {
+            this.attackers.splice(this.attackers.indexOf(actor), 1);
+        }
     }
 
     update(timestamp) {
@@ -63,6 +75,13 @@ class Game {
 
         this.defender.checkbounds(this.bounds);
 
+        for (const a of this.attackers) {
+            a.checkbounds(this.bounds);
+            if (Math.random() > 0.995) {
+                this.missiles.push(a.fire());
+            }
+        }
+
         for(var i = this.missiles.length-1; i >= 0; i--) {
             var m = this.missiles[i];
             var remove = !m.checkbounds(this.bounds);
@@ -71,9 +90,6 @@ class Game {
                 const actor = this.actors[j];
                 if (actor !== m && actor.hitBy(m)) {
                     remove = true;
-                    if (actor.isDead()) {
-                        this.deleteActor(actor);
-                    }
                 } 
             }
 
@@ -81,7 +97,16 @@ class Game {
                 this.missiles.splice(i, 1);
             }
         }
-        this.actors = [this.defender, ...this.fortresses, ...this.missiles];
+
+        for (const a of this.actors) {
+            if (a.isDead()) {
+                this.deleteActor(a);
+            }
+        }
+
+        this.actors = [this.defender, ...this.fortresses, ...this.attackers, ...this.missiles];
+
+        return !this.defender.isDead();
     }
 
     redraw(timestamp) {
@@ -90,6 +115,12 @@ class Game {
         for (const actor of this.actors) {
             actor.draw(ctx, timestamp);            
         }
+    }
+
+    gameOver() {
+        ctx.fillStyle = 'red';
+        ctx.font = '48px georgia';
+        ctx.fillText("Game Over!", this.width/4, this.height/2)
     }
 }
 
@@ -179,6 +210,43 @@ class Defender extends Actor {
     }
 }
 
+class Attacker extends Actor {
+    constructor(origin) {
+        super(origin, 20, 10);
+        this.health = 2;
+        this.originalPos = origin;
+        this.setspeed(new Vector(0.1, 0.01));
+    }
+
+    fire() {
+        return new Bomb(this.origin.add(new Vector(0, 10)), new Vector(this.speed.x, 3));
+    }
+
+    checkbounds(rect) {
+        if (Math.abs(this.originalPos.x - this.origin.x) > 40) {
+            this.setspeed(new Vector(-this.speed.x, this.speed.y));
+        }
+
+        return true;
+    }
+
+    drawtranslated(ctx) {
+        var height = this.bounds.height;
+        var width = this.bounds.width;
+        ctx.fillStyle = "brown";
+        ctx.beginPath();
+        ctx.arc(0, 0, height/2, 0, Math.PI, false);
+        ctx.arc(0, height/2, height/2, 0, Math.PI, false);
+        ctx.moveTo(-width/2, 0);
+        ctx.lineTo(-width, 0);
+        ctx.moveTo(width/2, 0);
+        ctx.lineTo(width, 0);
+        ctx.fill();
+
+        super.drawtranslated(ctx);
+    }
+}
+
 class Missile extends Actor {
     constructor(origin, speed) {
         super(origin, 2, 5);
@@ -193,10 +261,25 @@ class Missile extends Actor {
     }
 }
 
+class Bomb extends Actor {
+    constructor(origin, speed) {
+        super(origin, 2, 5);
+        this.setspeed(speed);
+    }
+
+    drawtranslated(ctx) {
+        ctx.fillStyle = "brown";
+        ctx.fillRect(-this.bounds.width/2, -this.bounds.height/2, this.bounds.width, this.bounds.height);
+
+        super.drawtranslated(ctx);
+    }
+}
+
 class Fortress extends Actor
 {
     constructor(origin) {
         super(origin, 20, 10);
+        this.health = 20;
     }
 
     drawtranslated(ctx) {

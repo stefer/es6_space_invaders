@@ -22,9 +22,13 @@
     document.onkeyup = e => game.onkeyup(e);
 
     function step(timestamp) {
-        game.update(timestamp);
-        game.redraw(timestamp);
-        window.requestAnimationFrame(step);
+        if (game.update(timestamp)) {
+            game.redraw(timestamp);
+            window.requestAnimationFrame(step);
+        }
+        else {
+            game.gameOver();
+        }
     }
 
     window.requestAnimationFrame(step);
