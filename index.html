@@ -24,12 +24,10 @@
     document.onkeyup = e => game.onkeyup(e);
 
     function step(timestamp) {
-        if (game.update(timestamp)) {
-            game.redraw(timestamp);
+        game.update(timestamp);
+        game.redraw(timestamp);
+        if (!game.gameOver()) {
             window.requestAnimationFrame(step);
-        }
-        else {
-            game.gameOver();
         }
     }
 

@@ -112,8 +112,6 @@ class Game {
         }
 
         this.actors = [this.defender, ...this.fortresses, ...this.attackers, ...this.missiles];
-
-        return !this.defender.isDead() && this.attackers.length > 0;
     }
 
     redraw(timestamp) {
@@ -130,15 +128,23 @@ class Game {
     }
 
     gameOver() {
-        if (this.defender.isDead()) {
+        
+        const defeated = this.attackers.some(a => a.bounds.y > this.height - 30);
+
+        if (this.defender.isDead() || defeated) {
             ctx.fillStyle = 'red';
             ctx.font = '48px georgia';
-            ctx.fillText("Game Over!", this.width/4, this.height/2)
+            ctx.fillText("Game Over!", this.width/4, this.height/2);
+            return true;
         }
-        else {
+
+        if (this.attackers.length <= 0) {
             ctx.fillStyle = 'darkgrey';
             ctx.font = '48px georgia';
             ctx.fillText("Success!", this.width/4, this.height/2)
+            return true;
         }
+
+        return false;
     }
 }
