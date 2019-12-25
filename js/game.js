@@ -98,16 +98,9 @@ class Game {
 
         this.projectiles.filter(m => !m.checkbounds(this.bounds)).forEach(m => this.deleteActor(m));
 
-        for(const m of this.projectiles) {
-            for (const actor of this.actors) {
-                if (actor.hitBy(m)) {
-                    m.health--;
-                    if (m instanceof Missile) {
-                        this.score++;
-                    }
-                } 
-            }
-        }
+        var hitProjectiles = this.projectiles.filter(p => this.actors.some(a => a.hitBy(p)));
+        hitProjectiles.forEach(p => p.health--);
+        this.score += hitProjectiles.filter(p => p instanceof Missile).length;
 
         this.actors.filter(a => a.isDead()).forEach(a => this.deleteActor(a));
 
