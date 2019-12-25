@@ -30,11 +30,11 @@ class Game {
     onkeydown(e) {
         switch (e.code) {
             case 'ArrowRight':
-                this.defender.setspeed(new Vector(this.speed, 0));
+                this.defender.setspeed(new Vector(this.speed-1+Math.random(), 0));
                 break;
         
             case 'ArrowLeft':
-                this.defender.setspeed(new Vector(-this.speed, 0));
+                this.defender.setspeed(new Vector(-this.speed+1-Math.random(), 0));
                 break;
 
             default:
@@ -83,6 +83,7 @@ class Game {
             if (Math.random() > 0.999) {
                 this.missiles.push(a.fire());
             }
+            a.setspeed(a.speed.add(new Vector(0, 0.00001)));
         }
 
         for(var i = this.missiles.length-1; i >= 0; i--) {
@@ -172,7 +173,7 @@ class Actor {
         if (this.bounds.overlaps(actor.bounds))
         {
             var translation = actor.origin.subtract(this.origin);
-            this.hits.push(Rect.fromcenter(translation, actor.bounds.width, actor.bounds.height));
+            this.hits.push(Rect.fromcenter(translation, actor.bounds.width*1.5, actor.bounds.height*1.5));
             this.health--
             return true;
         }
@@ -234,7 +235,7 @@ class Attacker extends Actor {
         super(origin, 20, 10);
         this.health = 2;
         this.originalPos = origin;
-        this.setspeed(new Vector(0.1, 0.01));
+        this.setspeed(new Vector(0.1, 0.02));
     }
 
     fire() {
@@ -257,14 +258,18 @@ class Attacker extends Actor {
         var height = this.bounds.height;
         var width = this.bounds.width;
         ctx.fillStyle = "brown";
+        ctx.strokeStyle = "brown";
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(0, 0, height/2, 0, Math.PI, false);
-        ctx.arc(0, height/2, height/2, 0, Math.PI, false);
+        ctx.arc(0, 0, height/2, 0, 2 * Math.PI, false);
+        ctx.arc(0, height*2/3, height/3, 0, 2 * Math.PI, false);
         ctx.moveTo(-width/2, 0);
-        ctx.lineTo(-width, 0);
+        ctx.lineTo(0, 0);
         ctx.moveTo(width/2, 0);
-        ctx.lineTo(width, 0);
+        ctx.lineTo(0, 0);
         ctx.fill();
+        ctx.stroke();
+        ctx.closePath();
 
         super.drawtranslated(ctx);
     }
