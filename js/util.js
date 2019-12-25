@@ -23,7 +23,7 @@ class Rect {
         this.height = height;
     }
 
-    static fromcenter(v, width, height) {
+    static fromCenter(v, width, height) {
         return new Rect(v.x-width/2, v.y-height/2, width, height);
     }
 
@@ -39,7 +39,7 @@ class Rect {
         return new Rect(-this.width/2, -this.height/2, this.width, this.height)
     }
 
-    pointinside(v)
+    pointInside(v)
     {
         return (v.x >= this.x && v.x <= this.x+this.width)
             && (v.y >= this.y && v.y <= this.y+this.height)
@@ -54,15 +54,11 @@ class Rect {
         ]
     }
 
-    rectinside(r) {
-        return r.corners().every(rv => this.pointinside(rv));
-    }
-
     overlaps(r) {
-        return r.corners().some(rv => this.pointinside(rv));
+        return r.corners().some(rv => this.pointInside(rv));
     }
 
-    toinside(v)
+    toInside(v)
     {
         var x = v.x;
         var y = v.y;

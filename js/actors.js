@@ -4,12 +4,12 @@ class Actor {
     constructor(origin, width, height) {
         this.origin = origin;
         this.speed = new Vector(0,0);
-        this.bounds = Rect.fromcenter(this.origin, width, height);
+        this.bounds = Rect.fromCenter(this.origin, width, height);
         this.health = 5;
         this.hits = [];
     }
 
-    setspeed(v) {
+    setSpeed(v) {
         this.speed = v;
     }
 
@@ -18,8 +18,8 @@ class Actor {
         this.bounds = this.bounds.translate(this.speed);
     }
 
-    checkbounds(rect) {
-        return rect.pointinside(this.origin)
+    checkBounds(rect) {
+        return rect.pointInside(this.origin)
     }
 
     isDead() {
@@ -30,14 +30,14 @@ class Actor {
         if (actor !== this && this.bounds.overlaps(actor.bounds))
         {
             var translation = actor.origin.subtract(this.origin);
-            this.hits.push(Rect.fromcenter(translation, actor.bounds.width*1.5, actor.bounds.height*1.5));
+            this.hits.push(Rect.fromCenter(translation, actor.bounds.width*1.5, actor.bounds.height*1.5));
             this.health--
             return true;
         }
         return false;
     }
 
-    drawtranslated(ctx) {   
+    drawLocal(ctx) {   
 
         // ctx.strokeStyle = "#00ff00";
         // const localBounds = this.bounds.local();
@@ -52,7 +52,7 @@ class Actor {
         ctx.save();
         ctx.translate(this.origin.x, this.origin.y);
 
-        this.drawtranslated(ctx);
+        this.drawLocal(ctx);
        
         ctx.restore();
     }
@@ -67,23 +67,23 @@ class Defender extends Actor {
         return new Missile(this.origin.add(new Vector(0, -10)), new Vector(this.speed.x, -5));
     }
 
-    checkbounds(rect) {
+    checkBounds(rect) {
         var myBounds = rect.shrink(this.bounds.width/2, 0, this.bounds.width, 0);
-        if (!myBounds.pointinside(this.origin))
+        if (!myBounds.pointInside(this.origin))
         {
-            this.origin = myBounds.toinside(this.origin);
-            this.setspeed(new Vector(0, 0));
+            this.origin = myBounds.toInside(this.origin);
+            this.setSpeed(new Vector(0, 0));
         }
         return true;
     }
 
-    drawtranslated(ctx) {
+    drawLocal(ctx) {
         ctx.fillStyle = "#aa88aa";
         ctx.fillRect(-this.bounds.width/2, this.bounds.height/2, this.bounds.width, -this.bounds.height/3);
         ctx.fillRect(-this.bounds.width/4, this.bounds.height/2, this.bounds.width/2, -this.bounds.height*2/3);
         ctx.fillRect(-this.bounds.width/8, this.bounds.height/2, this.bounds.width/4, -this.bounds.height);
 
-        super.drawtranslated(ctx);
+        super.drawLocal(ctx);
     }
 }
 
@@ -92,16 +92,16 @@ class Attacker extends Actor {
         super(origin, 20, 10);
         this.health = 2;
         this.originalPos = origin;
-        this.setspeed(new Vector(0.1, 0.02));
+        this.setSpeed(new Vector(0.1, 0.02));
     }
 
     fire() {
         return new Bomb(this.origin.add(new Vector(0, 10)), new Vector(this.speed.x, 3));
     }
 
-    checkbounds(rect) {
+    checkBounds(rect) {
         if (Math.abs(this.originalPos.x - this.origin.x) > 40) {
-            this.setspeed(new Vector(-this.speed.x, this.speed.y));
+            this.setSpeed(new Vector(-this.speed.x, this.speed.y));
         }
 
         return true;
@@ -111,7 +111,7 @@ class Attacker extends Actor {
         return !(actor instanceof Bomb) && super.hitBy(actor);
     }
 
-    drawtranslated(ctx) {
+    drawLocal(ctx) {
         var height = this.bounds.height;
         var width = this.bounds.width;
         ctx.fillStyle = "brown";
@@ -128,37 +128,37 @@ class Attacker extends Actor {
         ctx.stroke();
         ctx.closePath();
 
-        super.drawtranslated(ctx);
+        super.drawLocal(ctx);
     }
 }
 
 class Missile extends Actor {
     constructor(origin, speed) {
         super(origin, 2, 5);
-        this.setspeed(speed);
+        this.setSpeed(speed);
         this.health = 1;
     }
 
-    drawtranslated(ctx) {
+    drawLocal(ctx) {
         ctx.fillStyle = "#FF0000";
         ctx.fillRect(-this.bounds.width/2, -this.bounds.height/2, this.bounds.width, this.bounds.height);
 
-        super.drawtranslated(ctx);
+        super.drawLocal(ctx);
     }
 }
 
 class Bomb extends Actor {
     constructor(origin, speed) {
         super(origin, 2, 5);
-        this.setspeed(speed);
+        this.setSpeed(speed);
         this.health = 1;
     }
 
-    drawtranslated(ctx) {
+    drawLocal(ctx) {
         ctx.fillStyle = "brown";
         ctx.fillRect(-this.bounds.width/2, -this.bounds.height/2, this.bounds.width, this.bounds.height);
 
-        super.drawtranslated(ctx);
+        super.drawLocal(ctx);
     }
 }
 
@@ -169,7 +169,7 @@ class Fortress extends Actor
         this.health = 10;
     }
 
-    drawtranslated(ctx) {
+    drawLocal(ctx) {
         var width = this.bounds.width;
         var height = this.bounds.height;
         ctx.fillStyle = "#000000";
@@ -182,6 +182,6 @@ class Fortress extends Actor
         ctx.closePath();
         ctx.fill();
 
-        super.drawtranslated(ctx);
+        super.drawLocal(ctx);
     }
 }

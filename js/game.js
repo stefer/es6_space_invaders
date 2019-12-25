@@ -30,11 +30,11 @@ class Game {
     onkeydown(e) {
         switch (e.code) {
             case 'ArrowRight':
-                this.defender.setspeed(new Vector(this.speed-1+Math.random(), 0));
+                this.defender.setSpeed(new Vector(this.speed-1+Math.random(), 0));
                 break;
         
             case 'ArrowLeft':
-                this.defender.setspeed(new Vector(-this.speed+1-Math.random(), 0));
+                this.defender.setSpeed(new Vector(-this.speed+1-Math.random(), 0));
                 break;
 
             default:
@@ -46,7 +46,7 @@ class Game {
         switch (e.code) {
             case 'ArrowRight':
             case 'ArrowLeft':
-                this.defender.setspeed(new Vector(0, 0));
+                this.defender.setSpeed(new Vector(0, 0));
                 break;
 
             case 'Space':
@@ -87,16 +87,16 @@ class Game {
     update(timestamp) {
         this.actors.forEach(a => a.update(ctx, timestamp));
 
-        this.defender.checkbounds(this.bounds);
+        this.defender.checkBounds(this.bounds);
 
         this.attackers.forEach(a => {
-            a.checkbounds(this.bounds);
-            a.setspeed(a.speed.add(new Vector(0, 0.00001)));
+            a.checkBounds(this.bounds);
+            a.setSpeed(a.speed.add(new Vector(0, 0.00001)));
         });
 
         this.projectiles.push(...this.attackers.filter(a => Math.random() > 0.999).map(a => a.fire()));
 
-        this.projectiles.filter(m => !m.checkbounds(this.bounds)).forEach(m => this.deleteActor(m));
+        this.projectiles.filter(m => !m.checkBounds(this.bounds)).forEach(m => this.deleteActor(m));
 
         var hitProjectiles = this.projectiles.filter(p => this.actors.some(a => a.hitBy(p)));
         hitProjectiles.forEach(p => p.health--);
