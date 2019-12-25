@@ -9,7 +9,11 @@ class Game {
         this.bounds = new Rect(0, 0, this.width, this.height);
 
         this.defender = new Defender(new Vector(this.width/2, this.height-10));
+        this.fortresses = [
+            new Fortress(new Vector(this.width/2, this.height-25))
+        ];
         this.missiles = [];
+        this.actors = [this.defender, ...this.fortresses, ...this.missiles];
     }
 
     onkeydown(e) {
@@ -54,15 +58,14 @@ class Game {
                 this.missiles.splice(i, 1);
             }
         }
+        this.actors = [this.defender, ...this.fortresses, ...this.missiles];
     }
 
     redraw(timestamp) {
         this.ctx.clearRect(0, 0, this.width, this.height); // clear canvas
-        this.defender.draw(ctx, timestamp);
 
-        for(var i = this.missiles.length-1; i >= 0; i--) {
-            var m = this.missiles[i];
-            m.draw(ctx, timestamp);
+        for (const actor of this.actors) {
+            actor.draw(ctx, timestamp);            
         }
     }
 }
@@ -124,13 +127,10 @@ class Defender extends Actor {
     }
 
     drawtranslated(ctx) {
-        ctx.beginPath();
-        ctx.rect(-this.bounds.width/2, 0, this.bounds.width, -this.bounds.height/3);
-        ctx.rect(-this.bounds.width/4, 0, this.bounds.width/2, -this.bounds.height*2/3);
-        ctx.rect(-this.bounds.width/8, 0, this.bounds.width/4, -this.bounds.height);
         ctx.fillStyle = "#aa88aa";
-        ctx.fill();
-        ctx.closePath();
+        ctx.fillRect(-this.bounds.width/2, 0, this.bounds.width, -this.bounds.height/3);
+        ctx.fillRect(-this.bounds.width/4, 0, this.bounds.width/2, -this.bounds.height*2/3);
+        ctx.fillRect(-this.bounds.width/8, 0, this.bounds.width/4, -this.bounds.height);
 
         super.drawtranslated(ctx);
     }
@@ -143,11 +143,29 @@ class Missile extends Actor {
     }
 
     drawtranslated(ctx) {
-        ctx.beginPath();
-        ctx.rect(-this.bounds.width/2, -this.bounds.height/2, this.bounds.width, this.bounds.height);
         ctx.fillStyle = "#FF0000";
-        ctx.fill();
+        ctx.fillRect(-this.bounds.width/2, -this.bounds.height/2, this.bounds.width, this.bounds.height);
+    }
+}
+
+class Fortress extends Actor
+{
+    constructor(origin) {
+        super(origin, 20, 10);
+    }
+
+    drawtranslated(ctx) {
+        var width = this.bounds.width;
+        var height = this.bounds.height;
+        ctx.fillStyle = "#000000";
+        ctx.beginPath();
+        ctx.moveTo(-width/2, 0);
+        ctx.lineTo(-width/2, -height/2);
+        ctx.lineTo(0, -height);
+        ctx.lineTo(width/2, -height/2);
+        ctx.lineTo(width/2, 0);
         ctx.closePath();
+        ctx.fill();
     }
 }
 
